@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Zerando o Torno Mecânico</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f4;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 600px;
+      background-color: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    .hidden {
+      display: none;
+    }
+    button {
+      margin: 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .progress {
+      margin: 10px 0;
+    }
+    .question {
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+    .option {
+      display: block;
+      margin: 5px 0;
+    }
+    .game-over {
+      color: red;
+      font-weight: bold;
+    }
+    .congrats {
+      color: green;
+      font-weight: bold;
+      font-size: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="start-screen">
+      <h1>Zerando o Torno Mecânico</h1>
+      <p>Escolha a dificuldade:</p>
+      <button onclick="startGame('comum')">Comum (27)</button>
+      <button onclick="startGame('dificil')">Difícil (45)</button>
+      <button onclick="startGame('maniaco')">Maníaco (90)</button>
+    </div>
+
+    <div id="quiz-screen" class="hidden">
+      <div class="progress" id="progress"></div>
+      <div class="question" id="question"></div>
+      <div id="options"></div>
+    </div>
+
+    <div id="result-screen" class="hidden">
+      <p id="result-message"></p>
+      <p id="correction"></p>
+      <button onclick="location.reload()">Recomeçar</button>
+    </div>
+
+    <div id="congrats-screen" class="hidden">
+      <p class="congrats">Parabéns! Você zerou o jogo do torno mecânico!</p>
+      <button onclick="location.reload()">Jogar Novamente</button>
+    </div>
+  </div>
+
+  <script>
+    const perguntasPorModulo = {
+      comum: 3,
+      dificil: 5,
+      maniaco: 10
+    };
+
+    const perguntas = [
+      // Exemplo de pergunta (substituir e expandir para 90)
+      {
+        modulo: 'Introdução ao torno mecânico',
+        enunciado: 'Qual a principal função do torno mecânico?',
+        opcoes: ['Furar materiais', 'Soldar peças', 'Usinar peças giratórias', 'Medições de precisão'],
+        correta: 2,
+        explicacao: 'O torno é usado principalmente para usinar peças que giram em torno de um eixo.'
+      },
+      // Adicionar mais 89 perguntas aqui com base nos 9 módulos
+    ];
+
+    let perguntasSelecionadas = [];
+    let perguntaAtual = 0;
+
+    function startGame(nivel) {
+      document.getElementById('start-screen').classList.add('hidden');
+      document.getElementById('quiz-screen').classList.remove('hidden');
+
+      const qtdPorModulo = perguntasPorModulo[nivel];
+      const modulos = [...new Set(perguntas.map(p => p.modulo))];
+
+      perguntasSelecionadas = modulos.flatMap(mod => {
+        const filtradas = perguntas.filter(p => p.modulo === mod);
+        return embaralhar(filtradas).slice(0, qtdPorModulo);
+      });
+
+      perguntasSelecionadas = embaralhar(perguntasSelecionadas);
+
+      mostrarPergunta();
+    }
+
+    function mostrarPergunta() {
+      const pergunta = perguntasSelecionadas[perguntaAtual];
+      document.getElementById('progress').innerText = `Pergunta ${perguntaAtual + 1}/${perguntasSelecionadas.length}`;
+      document.getElementById('question').innerText = pergunta.enunciado;
+
+      const opcoesDiv = document.getElementById('options');
+      opcoesDiv.innerHTML = '';
+      pergunta.opcoes.forEach((op, i) => {
+        const btn = document.createElement('button');
+        btn.className = 'option';
+        btn.innerText = op;
+        btn.onclick = () => verificarResposta(i);
+        opcoesDiv.appendChild(btn);
+      });
+    }
+
+    function verificarResposta(indice) {
+      const pergunta = perguntasSelecionadas[perguntaAtual];
+      if (indice === pergunta.correta) {
+        perguntaAtual++;
+        if (perguntaAtual < perguntasSelecionadas.length) {
+          mostrarPergunta();
+        } else {
+          document.getElementById('quiz-screen').classList.add('hidden');
+          document.getElementById('congrats-screen').classList.remove('hidden');
+        }
+      } else {
+        document.getElementById('quiz-screen').classList.add('hidden');
+        document.getElementById('result-screen').classList.remove('hidden');
+        document.getElementById('result-message').innerText = 'Game Over';
+        document.getElementById('correction').innerText = `Resposta correta: ${pergunta.opcoes[pergunta.correta]}\n${pergunta.explicacao}`;
+      }
+    }
+
+    function embaralhar(array) {
+      return array.sort(() => Math.random() - 0.5);
+    }
+  </script>
+</body>
+</html>
